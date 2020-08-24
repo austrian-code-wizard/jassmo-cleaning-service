@@ -45,7 +45,7 @@ def main(file_path: str, output_path: str) -> int:
 
     
     chdir(output_dir)
-    output_dir = output_dir.cwd() / f"email-parser-output-{datetime.utcnow().strftime("%m-%d-%Y--%H-%M-%S")}"
+    output_dir = output_dir.cwd() / f"email-parser-output-{datetime.utcnow().strftime('%m-%d-%Y--%H-%M-%S')}"
     output_dir.mkdir()
 
     hash_list_path = output_dir / "email-hashes.csv"
