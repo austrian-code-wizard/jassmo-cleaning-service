@@ -3,7 +3,7 @@
 ## Installation
 
 - Clone this GitHub Repository
-- Install Anaconda on your system (Instructions [Here](https://docs.anaconda.com/anaconda/install/))
+- Install Miniconda on your system (Instructions [Here](https://docs.conda.io/en/latest/miniconda.html))
 - Make sure conda is added to your PATH by running `conda init` in your Terminal
 - Navigate into the cloned repository
 - Create the conda environment to run this utility with `conda env create --file conda-env.yaml`
