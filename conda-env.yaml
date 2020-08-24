@@ -1,0 +1,10 @@
+name: jassmo-cleaning
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - pip=20.2.2
+  - python=3.8.3
+  - pip:
+    - extract-msg==0.26.4
+    - names-dataset==1.9.1

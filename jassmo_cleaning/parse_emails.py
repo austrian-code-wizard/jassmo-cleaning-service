@@ -8,8 +8,9 @@ from parsers import parse_eml, parse_msg, emails_to_hashes, delete_names_from_em
 
 def main(file_path: str, output_path: str) -> int:
     rootdir = Path(file_path)
+    output_dir = Path(output_path).absolute()
 
-    if not rootdir.exists():
+    if not rootdir.exists() or not rootdir.is_dir() or not output_dir.exists() or not output_dir.is_dir():
         raise ValueError(f"Directory does not exist: {str(rootdir.absolute())}")
 
     file_list = [f for f in rootdir.glob('**/*') if f.is_file()]
@@ -30,7 +31,7 @@ def main(file_path: str, output_path: str) -> int:
         parsed_email_number += 1
         if parsed_email_number % 5 == 0:
             print("--------------------")
-            print(f"Parsed {parsed_email_number/len(file_list)}% ({parsed_email_number}/{len(file_list)})")
+            print(f"Parsed {(parsed_email_number/len(file_list)*100)}% ({parsed_email_number}/{len(file_list)})")
 
     print("--------------------")
     parsed_emails = [parsed_email for parsed_email in parsed_emails if parsed_email is not None]
@@ -42,7 +43,7 @@ def main(file_path: str, output_path: str) -> int:
     print(f"Deleting human names from {len(parsed_emails)} files...")
     parsed_emails = delete_names_from_emails(parsed_emails)
 
-    output_dir = Path(output_path).absolute()
+    
     chdir(output_dir)
     output_dir = output_dir.cwd() / f"email-parser-output-{datetime.utcnow().isoformat()}"
     output_dir.mkdir()
@@ -76,8 +77,8 @@ def main(file_path: str, output_path: str) -> int:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-f", "--file_path", required=False)
-    parser.add_argument("-o", "--output_path", required=False)
+    parser.add_argument("-f", "--file_path", required=True)
+    parser.add_argument("-o", "--output_path", required=True)
 
     args = parser.parse_args()
 
