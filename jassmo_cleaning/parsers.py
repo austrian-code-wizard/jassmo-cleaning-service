@@ -16,13 +16,14 @@ def parse_email_address(raw_string: str) -> str:
     if raw_string is not None:
         match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', raw_string)
         if match is not None:
-            return match.group(0)
+            return (match.group(0)).lower()
         return None
     return None
 
 def parse_email_addresses(raw_string: str) -> List[str]:
     if raw_string is not None:
-        return re.findall(r'[\w\.-]+@[\w\.-]+\.\w+', raw_string)
+        addresses = re.findall(r'[\w\.-]+@[\w\.-]+\.\w+', raw_string)
+        return [address.lower() for address in addresses]
     return []
 
 def parse_datetime(raw_string: str) ->  str:
