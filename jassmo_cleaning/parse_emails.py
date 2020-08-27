@@ -2,18 +2,27 @@ import json
 import argparse
 from os import chdir
 from csv import writer
+from typing import List
 from pathlib import Path
 from datetime import datetime
 from parsers import parse_eml, parse_msg, emails_to_hashes, delete_names_from_emails
 
-def main(file_path: str, output_path: str) -> int:
-    rootdir = Path(file_path)
+def main(file_paths: List[str], output_path: str) -> int:
+    
     output_dir = Path(output_path).absolute()
 
-    if not rootdir.exists() or not rootdir.is_dir() or not output_dir.exists() or not output_dir.is_dir():
-        raise ValueError(f"Directory does not exist: {str(rootdir.absolute())}")
+    if not output_dir.exists() or not output_dir.is_dir():
+        raise ValueError(f"Output Directory does not exist: {str(output_dir.absolute())}")
 
-    file_list = [f for f in rootdir.glob('**/*') if f.is_file()]
+    file_list = []
+
+    for file_path in file_paths:
+        rootdir = Path(file_path)
+
+        if not rootdir.exists() or not rootdir.is_dir() or not output_dir.exists() or not output_dir.is_dir():
+            raise ValueError(f"Input Directory does not exist: {str(rootdir.absolute())}")
+
+        file_list += [f for f in rootdir.glob('**/*') if f.is_file()]
 
     print(f"Parsing {len(file_list)} files...")
     
@@ -77,7 +86,7 @@ def main(file_path: str, output_path: str) -> int:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-f", "--file_path", required=True)
+    parser.add_argument("-f", "--file_path", required=True, nargs='+')
     parser.add_argument("-o", "--output_path", required=True)
 
     args = parser.parse_args()
