@@ -8,3 +8,4 @@ dependencies:
   - pip:
     - extract-msg==0.26.4
     - names-dataset==1.9.1
+    - libratom==0.4.3

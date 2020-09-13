@@ -2,11 +2,12 @@ import re
 import email
 import hashlib
 import extract_msg
+from pathlib import Path
 from logging import Logger
 from typing import List, Dict, Tuple
 from names_dataset import NameDataset
+from libratom.lib.pff import PffArchive
 from email.utils import parsedate_to_datetime
-
 
 logger = Logger("parser_logger")
 
@@ -57,7 +58,7 @@ def parse_msg(file_path: str) -> Dict:
             ]
         }
     except Exception as e:
-        logger.debug(f"Failed to parse .eml file: {file_path}. Exception: {e}")
+        logger.debug(f"Failed to parse .msg file: {file_path}. Exception: {e}")
         logger.error(f"Failed to parse .msg file: {file_path}")
     
 
@@ -91,8 +92,34 @@ def parse_eml(file_path: str) -> Dict:
             "attachments": attachments 
         }
     except Exception as e:
-        logger.debug(f"Failed to parse .eml file: {file_path}. Exception: {e}")
-        logger.error(f"Failed to parse .msg file: {file_path}")
+        logger.error(f"Failed to parse .eml file: {file_path}. Exception: {e}")
+        logger.error(f"Failed to parse .eml file: {file_path}")
+
+def parse_pst(file_path: str) -> List[Dict]:
+    try:
+        parsed_messages = []
+        archive = PffArchive(file_path)
+        eml_out = Path(Path.cwd() / "tmp")
+
+        if not eml_out.exists():
+            eml_out.mkdir()
+
+        for folder in archive.folders():
+            if folder.get_number_of_sub_messages() != 0:
+                for message in folder.sub_messages:
+                    name = message.subject.replace(" ", "_")
+                    name = name.replace("/","-")
+                    filename = eml_out / f"{message.identifier}_{name}.eml"
+                    filename.write_text(archive.format_message(message).replace("Content-Type: multipart/mixed;", "Content-type: text/plain;"))
+                    parsed_message = parse_eml(filename)
+                    parsed_message["attachments"] = [{"filename": attachment.name, "size": attachment.size} for attachment in archive.get_attachment_metadata(message)]
+                    parsed_messages.append(parsed_message)
+                    filename.unlink()
+        eml_out.rmdir()
+        return parsed_messages
+    except Exception as e:
+        logger.debug(f"Failed to parse .pst file: {file_path}. Exception: {e}")
+        logger.error(f"Failed to parse .pst file: {file_path}")
 
 def emails_to_hashes(emails: List[Dict]) -> Tuple[Dict, List]:
     email_list = {}
