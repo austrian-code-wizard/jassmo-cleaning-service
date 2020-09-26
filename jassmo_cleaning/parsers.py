@@ -58,8 +58,9 @@ def parse_msg(file_path: str) -> Dict:
             ]
         }
     except Exception as e:
-        logger.debug(f"Failed to parse .msg file: {file_path}. Exception: {e}")
-        logger.error(f"Failed to parse .msg file: {file_path}")
+        logger.error(f"Failed to parse .msg file: {file_path}. Exception: {e}")
+        #logger.error(f"Failed to parse .msg file: {file_path}")
+        return None
     
 
 def parse_eml(file_path: str) -> Dict:
@@ -93,7 +94,8 @@ def parse_eml(file_path: str) -> Dict:
         }
     except Exception as e:
         logger.error(f"Failed to parse .eml file: {file_path}. Exception: {e}")
-        logger.error(f"Failed to parse .eml file: {file_path}")
+        #logger.error(f"Failed to parse .eml file: {file_path}")
+        return None
 
 def parse_pst(file_path: str) -> List[Dict]:
     try:
@@ -118,8 +120,9 @@ def parse_pst(file_path: str) -> List[Dict]:
         eml_out.rmdir()
         return parsed_messages
     except Exception as e:
-        logger.debug(f"Failed to parse .pst file: {file_path}. Exception: {e}")
-        logger.error(f"Failed to parse .pst file: {file_path}")
+        logger.error(f"Failed to parse .pst file: {file_path}. Exception: {e}")
+        #logger.error(f"Failed to parse .pst file: {file_path}")
+        return []
 
 def emails_to_hashes(emails: List[Dict]) -> Tuple[Dict, List]:
     email_list = {}

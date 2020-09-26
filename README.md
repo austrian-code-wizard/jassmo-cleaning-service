@@ -1,5 +1,11 @@
 # jassmo-cleaning-service
 
+## Prerequesites
+- Since one of the packages used by this project needs CPP build tools for installation, you need to set-up the apropriate environment.
+- For MacOS, follow [these instructions](https://github.com/libratom/libratom#macos-environment-setup) up until the step where it asks you to check whether you need Python 3. 
+- For Windows, follow [these instructions](https://github.com/libratom/libratom#windows-environment-setup) up until the step where it asks you to download Anaconda.
+- For Ubuntu, install the necessary tools by running `sudo apt install build-essential`
+
 ## Option 1: Installation With Conda
 
 - Clone this GitHub Repository
