@@ -39,7 +39,7 @@ def main(file_paths: List[str], output_path: str) -> int:
 
         for file_rel in project_files[project]:
             if str(file_rel)[-4:] == ".msg":
-                parsed_emails.append(parse_msg(str(file_rel.absolute())))
+                parsed_emails += parse_msg(str(file_rel.absolute()))
             elif str(file_rel)[-4:] == ".eml":
                 parsed_emails.append(parse_eml(str(file_rel.absolute())))
             elif str(file_rel)[-4:] == ".pst":

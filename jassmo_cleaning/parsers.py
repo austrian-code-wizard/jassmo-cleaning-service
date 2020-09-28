@@ -1,4 +1,5 @@
 import re
+import uuid
 import email
 import hashlib
 import extract_msg
@@ -37,10 +38,24 @@ def remove_email_address(raw_string: str) -> str:
         return re.sub(r'[\w\.-]+@[\w\.-]+\.\w+', '', raw_string)
     return None
 
-def parse_msg(file_path: str) -> Dict:
+def parse_msg(msg=None) -> List[Dict]:
     try:
-        msg = extract_msg.openMsg(file_path)
-        return {
+        messages = []
+        if isinstance(msg, str):
+            msg = extract_msg.openMsg(msg)
+
+        attachments = []
+
+        for attachment in msg.attachments:
+            if isinstance(attachment.data, extract_msg.message.Message):
+                messages += parse_msg(attachment.data)
+            elif attachment.cid is not None:
+                attachments.append( {
+                    "filename": attachment.longFilename,
+                    "size": len(attachment.data)
+                } )
+
+        parsed_message = {
             "to": list({address for address in parse_email_addresses(msg.to)}),
             "from": parse_email_address(msg.sender),
             "recipients": list({parse_email_address(rec.email) for rec in msg.recipients}),
@@ -50,15 +65,13 @@ def parse_msg(file_path: str) -> Dict:
             "date": parse_datetime(msg.date),
             "messageID": msg.messageId,
             "inReplyTo": msg.inReplyTo,
-            "attachments": [
-                {
-                    "filename": attachment.longFilename,
-                    "size": len(attachment.data)
-                } for attachment in msg.attachments
-            ]
+            "attachments": attachments
         }
+        
+        messages.append(parsed_message)
+        return messages
     except Exception as e:
-        logger.error(f"Failed to parse .msg file: {file_path}. Exception: {e}")
+        logger.error(f"Failed to parse .msg file: {msg}. Exception: {e}")
         return None
     
 
@@ -107,9 +120,7 @@ def parse_pst(file_path: str) -> List[Dict]:
         for folder in archive.folders():
             if folder.get_number_of_sub_messages() != 0:
                 for message in folder.sub_messages:
-                    name = message.subject.replace(" ", "_")
-                    name = name.replace("/","-")
-                    filename = eml_out / f"{message.identifier}_{name}.eml"
+                    filename = eml_out / f"{uuid.uuid4().hex}.eml"
                     filename.write_text(re.sub("Content-Type: [ -~]*/[ -~]*;", "Content-type: text/plain;", archive.format_message(message)))
                     parsed_message = parse_eml(filename)
                     if parsed_message is not None:
