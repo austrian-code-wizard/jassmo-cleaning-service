@@ -59,7 +59,6 @@ def parse_msg(file_path: str) -> Dict:
         }
     except Exception as e:
         logger.error(f"Failed to parse .msg file: {file_path}. Exception: {e}")
-        #logger.error(f"Failed to parse .msg file: {file_path}")
         return None
     
 
@@ -78,7 +77,7 @@ def parse_eml(file_path: str) -> Dict:
                     "size": len(part.get_payload())
                 })
             if part.get_content_type() == "text/plain":
-                body += part.get_payload(decode=True).decode()
+                body += part.get_payload()
 
         return {
             "to": list({address for address in parse_email_addresses(eml["To"])}),
@@ -94,7 +93,6 @@ def parse_eml(file_path: str) -> Dict:
         }
     except Exception as e:
         logger.error(f"Failed to parse .eml file: {file_path}. Exception: {e}")
-        #logger.error(f"Failed to parse .eml file: {file_path}")
         return None
 
 def parse_pst(file_path: str) -> List[Dict]:
@@ -112,16 +110,18 @@ def parse_pst(file_path: str) -> List[Dict]:
                     name = message.subject.replace(" ", "_")
                     name = name.replace("/","-")
                     filename = eml_out / f"{message.identifier}_{name}.eml"
-                    filename.write_text(archive.format_message(message).replace("Content-Type: multipart/mixed;", "Content-type: text/plain;"))
+                    filename.write_text(re.sub("Content-Type: [ -~]*/[ -~]*;", "Content-type: text/plain;", archive.format_message(message)))
                     parsed_message = parse_eml(filename)
-                    parsed_message["attachments"] = [{"filename": attachment.name, "size": attachment.size} for attachment in archive.get_attachment_metadata(message)]
-                    parsed_messages.append(parsed_message)
+                    if parsed_message is not None:
+                        parsed_message["attachments"] = [{"filename": attachment.name, "size": attachment.size} for attachment in archive.get_attachment_metadata(message)]
+                        parsed_messages.append(parsed_message)
+                    else:
+                        print(f"Failed to parse converted .eml file {filename}, so cannot parse corresponding .pst")
                     filename.unlink()
         eml_out.rmdir()
         return parsed_messages
     except Exception as e:
         logger.error(f"Failed to parse .pst file: {file_path}. Exception: {e}")
-        #logger.error(f"Failed to parse .pst file: {file_path}")
         return []
 
 def emails_to_hashes(emails: List[Dict]) -> Tuple[Dict, List]:
