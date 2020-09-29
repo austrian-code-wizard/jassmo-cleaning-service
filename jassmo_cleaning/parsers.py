@@ -53,18 +53,18 @@ def parse_msg(msg=None) -> List[Dict]:
                 attachments.append( {
                     "filename": attachment.longFilename,
                     "size": len(attachment.data)
-                } )
+                } )        
 
         parsed_message = {
             "to": list({address for address in parse_email_addresses(msg.to)}),
             "from": parse_email_address(msg.sender),
             "recipients": list({parse_email_address(rec.email) for rec in msg.recipients}),
             "emails_in_body": list({address for address in parse_email_addresses(msg.body)}),
-            "subject": msg.subject,
+            "subject": msg.subject if msg.subject is not None else "",
             "body": remove_email_address(msg.body),
             "date": parse_datetime(msg.date),
-            "messageID": msg.messageId,
-            "inReplyTo": msg.inReplyTo,
+            "messageID": msg.messageId if msg.messageId is not None else "",
+            "inReplyTo": msg.inReplyTo if msg.inReplyTo is not None else "",
             "attachments": attachments
         }
         
@@ -97,11 +97,11 @@ def parse_eml(file_path: str) -> Dict:
             "from": parse_email_address(eml["From"]),
             "recipients": list({address for address in parse_email_addresses(eml["CC"])}),
             "emails_in_body": list({address for address in parse_email_addresses(body)}),
-            "subject": eml["Subject"],
+            "subject": eml["Subject"] if eml["Subject"] is not None else "",
             "body": remove_email_address(body),
             "date": parse_datetime(eml["Date"]),
-            "messageID": eml["Message-ID"],
-            "inReplyTo": eml["Reply-To"],
+            "messageID": eml["Message-ID"] if eml["Message-ID"] is not None else "",
+            "inReplyTo": eml["Reply-To"] if eml["Reply-To"] is not None else "",
             "attachments": attachments 
         }
     except Exception as e:
