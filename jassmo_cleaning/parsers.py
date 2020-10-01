@@ -112,7 +112,7 @@ def parse_pst(file_path: str) -> List[Dict]:
     try:
         parsed_messages = []
         archive = PffArchive(file_path)
-        eml_out = Path(Path.cwd() / "tmp")
+        eml_out = Path(Path.cwd() / f"tmp")
 
         if not eml_out.exists():
             eml_out.mkdir()
@@ -121,7 +121,7 @@ def parse_pst(file_path: str) -> List[Dict]:
             if folder.get_number_of_sub_messages() != 0:
                 for message in folder.sub_messages:
                     filename = eml_out / f"{uuid.uuid4().hex}.eml"
-                    filename.write_text(re.sub("Content-Type: [ -~]*/[ -~]*;", "Content-type: text/plain;", archive.format_message(message)))
+                    filename.write_text(re.sub("Content-Type: [ -~]*/[ -~]*;", "Content-type: text/plain;", archive.format_message(message)), encoding="utf-8")
                     parsed_message = parse_eml(filename)
                     if parsed_message is not None:
                         parsed_message["attachments"] = [{"filename": attachment.name, "size": attachment.size} for attachment in archive.get_attachment_metadata(message)]
@@ -129,7 +129,8 @@ def parse_pst(file_path: str) -> List[Dict]:
                     else:
                         print(f"Failed to parse converted .eml file {filename}, so cannot parse corresponding .pst")
                     filename.unlink()
-        eml_out.rmdir()
+        if not any(eml_out.iterdir()):
+            eml_out.rmdir()
         return parsed_messages
     except Exception as e:
         logger.error(f"Failed to parse .pst file: {file_path}. Exception: {e}")
