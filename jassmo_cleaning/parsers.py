@@ -77,7 +77,7 @@ def parse_msg(msg=None) -> List[Dict]:
 
 def parse_eml(file_path: str) -> Dict:
     try:
-        with open(file_path) as f:
+        with open(file_path, encoding="utf-8") as f:
             eml = email.message_from_file(f)
         
         body = ""
