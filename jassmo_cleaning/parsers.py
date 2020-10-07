@@ -19,8 +19,8 @@ def parse_email_address(raw_string: str) -> str:
         match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', raw_string)
         if match is not None:
             return (match.group(0)).lower()
-        return None
-    return None
+        return ""
+    return ""
 
 def parse_email_addresses(raw_string: str) -> List[str]:
     if raw_string is not None:
@@ -31,12 +31,12 @@ def parse_email_addresses(raw_string: str) -> List[str]:
 def parse_datetime(raw_string: str) ->  str:
     if raw_string is not None and raw_string != "None":
         return parsedate_to_datetime(raw_string).isoformat()
-    return None
+    return ""
 
 def remove_email_address(raw_string: str) -> str:
     if raw_string is not None:
         return re.sub(r'[\w\.-]+@[\w\.-]+\.\w+', '', raw_string)
-    return None
+    return ""
 
 def parse_msg(msg=None) -> List[Dict]:
     try:
@@ -72,7 +72,7 @@ def parse_msg(msg=None) -> List[Dict]:
         return messages
     except Exception as e:
         logger.error(f"Failed to parse .msg file: {msg}. Exception: {e}")
-        return None
+        return []
     
 
 def parse_eml(file_path: str) -> Dict:

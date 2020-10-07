@@ -80,9 +80,9 @@ def main(file_paths: List[str], output_path: str) -> int:
 
         with open(str(hash_list_path.absolute()), "w+") as f:
             csv_writer = writer(f)
-            csv_writer.writerow(["Company", "Role", "Hash"])
+            csv_writer.writerow(["Project", "Company", "Role", "Hash"])
             for address in parsed_project_email_addresses[project]:
-                csv_writer.writerow([address.split("@")[-1], "", parsed_project_email_addresses[project][address]])
+                csv_writer.writerow([project, address.split("@")[-1], "", parsed_project_email_addresses[project][address]])
 
         print("--------------------")
         print(f"Saving {len(parsed_project_files[project])} parsed emails to file...")
