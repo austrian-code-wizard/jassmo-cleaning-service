@@ -6,7 +6,7 @@ from csv import writer, reader
 from typing import List
 from pathlib import Path
 from datetime import datetime
-from parsers import parse_eml, parse_msg, parse_pst, emails_to_hashes, delete_names_from_emails
+from parsers import parse_eml, parse_msg, parse_pst, emails_to_hashes, delete_names_from_emails, clean_unique_emails
 
 def main(file_paths: List[str], output_path: str) -> int:
     
@@ -83,6 +83,19 @@ def main(file_paths: List[str], output_path: str) -> int:
             csv_writer.writerow(["Project", "Company", "Role", "Hash"])
             for address in parsed_project_email_addresses[project]:
                 csv_writer.writerow([project, address.split("@")[-1], "", parsed_project_email_addresses[project][address]])
+
+        label_list_path = project_dir / "email-labelling.csv"
+        
+        print("--------------------")
+        emails_to_label = [address.split("@")[-1] for address in parsed_project_email_addresses[project]]
+        emails_to_label = clean_unique_emails(emails_to_label)
+        print(f"Saving {len(emails_to_label)} emails to label...")
+
+        with open(str(label_list_path.absolute()), "w+") as f:
+            csv_writer = writer(f)
+            csv_writer.writerow(["Project", "Company", "Role"])
+            for address in emails_to_label:
+                csv_writer.writerow([project, address, ""])
 
         print("--------------------")
         print(f"Saving {len(parsed_project_files[project])} parsed emails to file...")

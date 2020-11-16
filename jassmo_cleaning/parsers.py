@@ -185,3 +185,7 @@ def delete_names_from_emails(emails: List[Dict]) -> List[Dict]:
                 new_subject += f" {word}"
         parsed_email["subject"] = new_subject
     return emails
+
+def clean_unique_emails(emails: List[str]) -> List[str]:
+    # pylint does not realize that "email" in the list comprehension here is a string, so you can ignore it if it shows any warnings
+    return list(set([email for email in emails if sum([1 for char in email if char.isdigit()]) <= 2]))
