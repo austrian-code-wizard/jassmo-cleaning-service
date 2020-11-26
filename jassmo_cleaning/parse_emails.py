@@ -6,7 +6,7 @@ from csv import writer, reader
 from typing import List
 from pathlib import Path
 from datetime import datetime
-from parsers import parse_eml, parse_msg, parse_pst, emails_to_hashes, delete_names_from_emails, clean_unique_emails
+from parsers import parse_eml, parse_msg, parse_pst, emails_to_hashes, delete_names_from_emails, clean_unique_emails, delete_phone_numbers_from_emails
 
 def main(file_paths: List[str], output_path: str) -> int:
     
@@ -62,6 +62,10 @@ def main(file_paths: List[str], output_path: str) -> int:
         print(f"Deleting human names from {len(parsed_emails)} files...")
         parsed_emails = delete_names_from_emails(parsed_emails)
 
+        print("--------------------")
+        print(f"Deleting phone numbers from {len(parsed_emails)} files...")
+        parsed_emails = delete_phone_numbers_from_emails(parsed_emails)
+
         parsed_project_files[project] = parsed_emails
         parsed_project_email_addresses[project] = hash_email_dict
 
@@ -104,7 +108,7 @@ def main(file_paths: List[str], output_path: str) -> int:
         for parsed_email in parsed_project_files[project]:
             email_path = project_dir / f"email-{email_index}.json"
             with open(str(email_path.absolute()), "w+") as f:
-                f.write(json.dumps(parsed_email, indent=4))
+                json.dump(parsed_email, f, indent=4, ensure_ascii=False)
             email_index += 1
 
         print("--------------------")
