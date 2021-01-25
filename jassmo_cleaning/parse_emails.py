@@ -107,8 +107,11 @@ def main(file_paths: List[str], output_path: str) -> int:
         email_index = 0
         for parsed_email in parsed_project_files[project]:
             email_path = project_dir / f"email-{email_index}.json"
-            with open(str(email_path.absolute()), "w+") as f:
-                json.dump(parsed_email, f, indent=4, ensure_ascii=False)
+            try:
+                with open(str(email_path.absolute()), "w+", encoding="utf-8") as f:
+                    json.dump(parsed_email, f, indent=4, ensure_ascii=False)
+            except Exception as e:
+                print(f"Error saving email {email_index} of project {project}: {e}")
             email_index += 1
 
         print("--------------------")
