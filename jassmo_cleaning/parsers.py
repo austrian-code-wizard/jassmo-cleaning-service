@@ -1,5 +1,6 @@
 import re
 import uuid
+import pypff
 import email
 import hashlib
 import extract_msg
@@ -7,7 +8,6 @@ from pathlib import Path
 from logging import Logger
 from typing import List, Dict, Tuple
 from names_dataset import NameDataset
-from libratom.lib.pff import PffArchive
 from email.utils import parsedate_to_datetime
 
 logger = Logger("parser_logger")
@@ -108,30 +108,52 @@ def parse_eml(file_path: str) -> Dict:
         logger.error(f"Failed to parse .eml file: {file_path}. Exception: {e}")
         return None
 
+def recurse_pst(base: pypff.folder):
+    messages = []
+    for folder in base.sub_folders:
+        if folder.number_of_sub_folders:
+            messages += recurse_pst(folder)
+        for msg in folder.sub_messages:
+            message = {
+                "to": [],
+                "from": "",
+                "recipients": [],
+                "emails_in_body": list({address for address in parse_email_addresses(msg.plain_text_body.decode())}),
+                "subject": msg.subject if msg.subject is not None else "",
+                "body": remove_email_address(msg.plain_text_body.decode()),
+                "date": "",
+                "messageID": "",
+                "inReplyTo": "",
+                "attachments": [] 
+            }
+            for header in msg.get_transport_headers().splitlines():
+                header = header.strip().lower()
+                if header.startswith("from:"):
+                    message["from"] = parse_email_address(header)
+                elif header.startswith("to:"):
+                    message["to"] = list({address for address in parse_email_addresses(header)})
+                elif header.startswith("cc:"):
+                    message["recipients"] = list({address for address in parse_email_addresses(header)})
+                elif header.startswith("date:"):
+                    message["date"] = parse_datetime(header.split("date:")[-1].strip())
+                elif header.startswith("message-id:"):
+                    message["messageID"] = header.split("message-id:")[-1].strip()
+                elif header.startswith("reply-to:"):
+                    message["inReplyTo"] = header.split("reply-to:")[-1].strip()
+            for attachment in msg.attachments:
+                message["attachments"].append({
+                    "filename": attachment.name,
+                    "size": attachment.size
+                })
+            messages.append(message)
+    return messages
+
+
 def parse_pst(file_path: str) -> List[Dict]:
     try:
-        parsed_messages = []
-        archive = PffArchive(file_path)
-        eml_out = Path(Path.cwd() / f"tmp")
-
-        if not eml_out.exists():
-            eml_out.mkdir()
-
-        for folder in archive.folders():
-            if folder.get_number_of_sub_messages() != 0:
-                for message in folder.sub_messages:
-                    filename = eml_out / f"{uuid.uuid4().hex}.eml"
-                    filename.write_text(re.sub("Content-Type: [ -~]*/[ -~]*;", "Content-type: text/plain;", archive.format_message(message)), encoding="utf-8")
-                    parsed_message = parse_eml(filename)
-                    if parsed_message is not None:
-                        parsed_message["attachments"] = [{"filename": attachment.name, "size": attachment.size} for attachment in archive.get_attachment_metadata(message)]
-                        parsed_messages.append(parsed_message)
-                    else:
-                        print(f"Failed to parse converted .eml file {filename}, so cannot parse corresponding .pst")
-                    filename.unlink()
-        if not any(eml_out.iterdir()):
-            eml_out.rmdir()
-        return parsed_messages
+        pst = pypff.open(file_path)
+        root = pst.get_root_folder()
+        return recurse_pst(root)
     except Exception as e:
         logger.error(f"Failed to parse .pst file: {file_path}. Exception: {e}")
         return []
