@@ -148,7 +148,7 @@ def recurse_pst(base: pypff.folder):
                     })
                 messages.append(message)
             except Exception as e:
-                logger.error(f"Failed to parse message in .pst file: {file_path}. Message subject: {msg.subject} Exception: {e}")
+                logger.error(f"Failed to parse message in .pst file. Message subject: {msg.subject} Exception: {e}")
     return messages
 
 
