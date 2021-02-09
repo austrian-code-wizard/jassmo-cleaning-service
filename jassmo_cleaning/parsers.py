@@ -114,38 +114,41 @@ def recurse_pst(base: pypff.folder):
         if folder.number_of_sub_folders:
             messages += recurse_pst(folder)
         for msg in folder.sub_messages:
-            message = {
-                "to": [],
-                "from": "",
-                "recipients": [],
-                "emails_in_body": list({address for address in parse_email_addresses(msg.plain_text_body.decode())}),
-                "subject": msg.subject if msg.subject is not None else "",
-                "body": remove_email_address(msg.plain_text_body.decode()),
-                "date": "",
-                "messageID": "",
-                "inReplyTo": "",
-                "attachments": [] 
-            }
-            for header in msg.get_transport_headers().splitlines():
-                header = header.strip().lower()
-                if header.startswith("from:"):
-                    message["from"] = parse_email_address(header)
-                elif header.startswith("to:"):
-                    message["to"] = list({address for address in parse_email_addresses(header)})
-                elif header.startswith("cc:"):
-                    message["recipients"] = list({address for address in parse_email_addresses(header)})
-                elif header.startswith("date:"):
-                    message["date"] = parse_datetime(header.split("date:")[-1].strip())
-                elif header.startswith("message-id:"):
-                    message["messageID"] = header.split("message-id:")[-1].strip()
-                elif header.startswith("reply-to:"):
-                    message["inReplyTo"] = header.split("reply-to:")[-1].strip()
-            for attachment in msg.attachments:
-                message["attachments"].append({
-                    "filename": attachment.name,
-                    "size": attachment.size
-                })
-            messages.append(message)
+            try:
+                message = {
+                    "to": [],
+                    "from": "",
+                    "recipients": [],
+                    "emails_in_body": list({address for address in parse_email_addresses(msg.plain_text_body.decode())}),
+                    "subject": msg.subject if msg.subject is not None else "",
+                    "body": remove_email_address(msg.plain_text_body.decode()),
+                    "date": "",
+                    "messageID": "",
+                    "inReplyTo": "",
+                    "attachments": [] 
+                }
+                for header in msg.get_transport_headers().splitlines():
+                    header = header.strip().lower()
+                    if header.startswith("from:"):
+                        message["from"] = parse_email_address(header)
+                    elif header.startswith("to:"):
+                        message["to"] = list({address for address in parse_email_addresses(header)})
+                    elif header.startswith("cc:"):
+                        message["recipients"] = list({address for address in parse_email_addresses(header)})
+                    elif header.startswith("date:"):
+                        message["date"] = parse_datetime(header.split("date:")[-1].strip())
+                    elif header.startswith("message-id:"):
+                        message["messageID"] = header.split("message-id:")[-1].strip()
+                    elif header.startswith("reply-to:"):
+                        message["inReplyTo"] = header.split("reply-to:")[-1].strip()
+                for attachment in msg.attachments:
+                    message["attachments"].append({
+                        "filename": attachment.name,
+                        "size": attachment.size
+                    })
+                messages.append(message)
+            except Exception as e:
+                logger.error(f"Failed to parse message in .pst file: {file_path}. Message subject: {msg.subject} Exception: {e}")
     return messages
 
 
